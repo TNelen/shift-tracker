@@ -1,113 +1,447 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
+import 'package:shifts/util/constants.dart';
+import 'package:shifts/util/shitfType.dart';
+import 'package:shifts/util/util.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  late final ValueNotifier<List<Event>> _selectedEvents;
 
-  void _incrementCounter() {
+  List<Event> _getEventsForDay(DateTime day) {
+    return kEvents[day] ?? [];
+  }
+
+  bool _dayHasEvent(DateTime day) {
+    return kEvents[day] != [];
+  }
+
+  @override
+  void initState() {
+    _selectedEvents = ValueNotifier(_getEventsForDay(_focusedDay));
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _selectedEvents.dispose();
+    super.dispose();
+  }
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _focusedDay = focusedDay;
+      _selectedDay = selectedDay;
     });
+
+    _selectedEvents.value = _getEventsForDay(_focusedDay);
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+          backgroundColor: Constants.blue,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.child_care,
+                color: Colors.black87,
+                size: 30,
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text(
+                'Kaatjes Kalender',
+                style: TextStyle(color: Colors.black87),
+              ),
+            ],
+          )),
+      body: Column(children: [
+        TableCalendar(
+          firstDay: kFirstDay,
+          lastDay: kLastDay,
+          startingDayOfWeek: StartingDayOfWeek.monday,
+          focusedDay: _focusedDay,
+          availableCalendarFormats: {
+            CalendarFormat.month: "Maand",
+            CalendarFormat.week: "Week"
+          },
+          calendarBuilders: CalendarBuilders(
+            selectedBuilder: (context, day, event) {
+              return Center(
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Colors.grey,
+                  ),
+                  child: Center(
+                    child: Text(
+                      day.day.toString(),
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              );
+            },
+            outsideBuilder: (context, day, focusedDay) {
+              final text = day.day.toString();
+
+              return Center(
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: Colors.grey.withOpacity(0.05)),
+                  child: Center(
+                    child: Text(
+                      text,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              );
+            },
+            todayBuilder: (context, day, focusedDay) {
+              final text = day.day.toString();
+
+              return Center(
+                child: Container(
+                  width: 200,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      border: Border.all(width: 0.5, color: Colors.black),
+                      color: Colors.grey.withOpacity(0.2)),
+                  child: Center(
+                    child: Text(
+                      text,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              );
+            },
+            markerBuilder: (context, day, events) {
+              ShiftType shift = ShiftType.VRIJ;
+              for (var e in events) {
+                if (e.toString().contains("vroege")) {
+                  shift = ShiftType.VROEGE;
+                } else if (e.toString().contains("late")) {
+                  shift = ShiftType.LATE;
+                } else if (e.toString().contains("nacht")) {
+                  shift = ShiftType.NACHT;
+                } else {
+                  shift = ShiftType.VRIJ;
+                }
+              }
+              if (shift != ShiftType.VRIJ) {
+                return Container(
+                  width: 40,
+                  height: 10,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: getColorForShift(shift)),
+                );
+              } else if (shift == ShiftType.VRIJ) {
+                return SizedBox();
+              }
+            },
+            defaultBuilder: (context, day, focusedDay) {
+              final text = day.day.toString();
+
+              return Center(
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: Colors.grey.withOpacity(0.2)),
+                  child: Center(
+                    child: Text(
+                      text,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          calendarFormat: _calendarFormat,
+          eventLoader: _getEventsForDay,
+          selectedDayPredicate: (day) {
+            // Use `selectedDayPredicate` to determine which day is currently selected.
+            // If this returns true, then `day` will be marked as selected.
+
+            // Using `isSameDay` is recommended to disregard
+            // the time-part of compared DateTime objects.
+            return isSameDay(_selectedDay, day);
+          },
+          onDaySelected: (selectedDay, focusedDay) {
+            _onDaySelected(selectedDay, focusedDay);
+          },
+          onFormatChanged: (format) {
+            if (_calendarFormat != format) {
+              // Call `setState()` when updating calendar format
+              setState(() {
+                _calendarFormat = format;
+              });
+            }
+          },
+          onPageChanged: (focusedDay) {
+            // No need to call `setState()` here
+            _focusedDay = focusedDay;
+          },
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        const SizedBox(height: 15.0),
+        Expanded(
+            child: Container(
+          color: Colors.grey.shade200,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 15,
+              ),
+              Text(
+                "Geplande shift",
+                style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w300),
+              ),
+              const SizedBox(height: 8.0),
+              Center(
+                child: Container(
+                  height: 3,
+                  width: 250,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: Constants.green),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Expanded(
+                child: ValueListenableBuilder<List<Event>>(
+                  valueListenable: _selectedEvents,
+                  builder: (context, events, _) {
+                    return ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: (context, index) {
+                        ShiftType type =
+                            getShiftTypeFromString(events[index].title);
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 30.0,
+                            vertical: 4.0,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            color: getColorForShift(type),
+                          ),
+                          padding: EdgeInsets.all(20),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Icon(
+                                getShiftIcon(type),
+                                size: 25,
+                              ),
+                              SizedBox(width: 20),
+                              Text(
+                                events[index].title,
+                                style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w400),
+                                textAlign: TextAlign.center,
+                              )
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              SizedBox(
+                height: 15,
+              ),
+              Text(
+                "Plan shift",
+                style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w300),
+              ),
+              const SizedBox(height: 8.0),
+              Center(
+                child: Container(
+                  height: 3,
+                  width: 250,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: Constants.blue),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      //TODO
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 4.0,
+                        vertical: 4.0,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.0),
+                        color: getColorForShift(ShiftType.VROEGE),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 7, horizontal: 15),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            getShiftIcon(ShiftType.VROEGE),
+                            size: 25,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            "Vroege",
+                            style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400),
+                            textAlign: TextAlign.center,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      //TODO
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 4.0,
+                        vertical: 4.0,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.0),
+                        color: getColorForShift(ShiftType.LATE),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 7, horizontal: 15),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            getShiftIcon(ShiftType.LATE),
+                            size: 25,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            "Late",
+                            style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400),
+                            textAlign: TextAlign.center,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      //todo
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 4.0,
+                        vertical: 4.0,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12.0),
+                        color: getColorForShift(ShiftType.NACHT),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 7, horizontal: 15),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            getShiftIcon(ShiftType.NACHT),
+                            size: 25,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            "Nacht",
+                            style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400),
+                            textAlign: TextAlign.center,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 50,
+              ),
+            ],
+          ),
+        )),
+      ]),
     );
   }
 }

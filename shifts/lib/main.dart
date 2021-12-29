@@ -159,11 +159,11 @@ class _MyHomePageState extends State<MyHomePage> {
             markerBuilder: (context, day, events) {
               ShiftType shift = ShiftType.VRIJ;
               for (var e in events) {
-                if (e.toString().contains("vroege")) {
+                if (e.toString().contains("Vroege")) {
                   shift = ShiftType.VROEGE;
-                } else if (e.toString().contains("late")) {
+                } else if (e.toString().contains("Late")) {
                   shift = ShiftType.LATE;
-                } else if (e.toString().contains("nacht")) {
+                } else if (e.toString().contains("Nacht")) {
                   shift = ShiftType.NACHT;
                 } else {
                   shift = ShiftType.VRIJ;

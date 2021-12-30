@@ -1,7 +1,11 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shifts/util/constants.dart';
+import 'package:shifts/util/eventLoader.dart';
+import 'package:shifts/util/shiftButton.dart';
+import 'package:shifts/util/shiftEvent.dart';
 import 'package:shifts/util/shitfType.dart';
 import 'package:shifts/util/util.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -37,21 +41,24 @@ class _MyHomePageState extends State<MyHomePage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  Eventloader eventLoader = Eventloader();
   late final ValueNotifier<List<Event>> _selectedEvents;
 
   List<Event> _getEventsForDay(DateTime day) {
-    return kEvents[day] ?? [];
+    return eventLoader.loadEventForDay(day);
   }
 
-  bool _dayHasEvent(DateTime day) {
-    return kEvents[day] != [];
+  void loadAllEvents() async {
+    eventLoader.init();
+    eventLoader.loadAllEvents();
+    setState(() {});
   }
 
   @override
   void initState() {
     _selectedEvents = ValueNotifier(_getEventsForDay(_focusedDay));
     initializeDateFormatting('nl_BE', null);
-
+    loadAllEvents();
     super.initState();
   }
 
@@ -239,7 +246,31 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             children: [
               SizedBox(
-                height: 15,
+                height: 25,
+              ),
+              _selectedDay != null
+                  ? Text(
+                      DateFormat.MMMMEEEEd("nl_BE")
+
+                          // displaying formatted date
+                          .format(_selectedDay!),
+                      style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600),
+                    )
+                  : Text(
+                      DateFormat.MMMMEEEEd("nl_BE")
+
+                          // displaying formatted date
+                          .format(_focusedDay),
+                      style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600),
+                    ),
+              SizedBox(
+                height: 25,
               ),
               Text(
                 "Geplande shift",
@@ -248,57 +279,19 @@ class _MyHomePageState extends State<MyHomePage> {
                     fontSize: 18,
                     fontWeight: FontWeight.w300),
               ),
-              const SizedBox(height: 8.0),
-              Center(
-                child: Container(
-                  height: 3,
-                  width: 250,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      color: Constants.green),
-                ),
-              ),
               SizedBox(
-                height: 10,
+                height: 20,
               ),
-              Expanded(
+              Container(
+                height: 100,
                 child: ValueListenableBuilder<List<Event>>(
                   valueListenable: _selectedEvents,
                   builder: (context, events, _) {
                     return ListView.builder(
                       itemCount: events.length,
                       itemBuilder: (context, index) {
-                        ShiftType type =
-                            getShiftTypeFromString(events[index].title);
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 30.0,
-                            vertical: 4.0,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.0),
-                            color: getColorForShift(type),
-                          ),
-                          padding: EdgeInsets.all(20),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Icon(
-                                getShiftIcon(type),
-                                size: 25,
-                              ),
-                              SizedBox(width: 20),
-                              Text(
-                                events[index].title,
-                                style: TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w400),
-                                textAlign: TextAlign.center,
-                              )
-                            ],
-                          ),
-                        );
+                        ShiftType type = events[index].shift;
+                        return ShiftEvent(type);
                       },
                     );
                   },
@@ -314,129 +307,38 @@ class _MyHomePageState extends State<MyHomePage> {
                     fontSize: 18,
                     fontWeight: FontWeight.w300),
               ),
-              const SizedBox(height: 8.0),
-              Center(
-                child: Container(
-                  height: 3,
-                  width: 250,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      color: Constants.blue),
-                ),
-              ),
               SizedBox(
-                height: 10,
+                height: 20,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   InkWell(
                     onTap: () {
-                      //TODO
+                      eventLoader.addEvent(
+                          _selectedDay ?? _focusedDay, ShiftType.VROEGE);
+                      _selectedEvents.value = _getEventsForDay(_focusedDay);
+                      setState(() {});
                     },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 4.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: getColorForShift(ShiftType.VROEGE),
-                      ),
-                      padding:
-                          EdgeInsets.symmetric(vertical: 7, horizontal: 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            getShiftIcon(ShiftType.VROEGE),
-                            size: 25,
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            "Vroege",
-                            style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400),
-                            textAlign: TextAlign.center,
-                          )
-                        ],
-                      ),
-                    ),
+                    child: ShiftButton(ShiftType.VROEGE),
                   ),
                   InkWell(
                     onTap: () {
-                      //TODO
+                      eventLoader.addEvent(
+                          _selectedDay ?? _focusedDay, ShiftType.LATE);
+                      _selectedEvents.value = _getEventsForDay(_focusedDay);
+                      setState(() {});
                     },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 4.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: getColorForShift(ShiftType.LATE),
-                      ),
-                      padding:
-                          EdgeInsets.symmetric(vertical: 7, horizontal: 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            getShiftIcon(ShiftType.LATE),
-                            size: 25,
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            "Late",
-                            style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400),
-                            textAlign: TextAlign.center,
-                          )
-                        ],
-                      ),
-                    ),
+                    child: ShiftButton(ShiftType.LATE),
                   ),
                   InkWell(
                     onTap: () {
-                      //todo
+                      eventLoader.addEvent(
+                          _selectedDay ?? _focusedDay, ShiftType.NACHT);
+                      _selectedEvents.value = _getEventsForDay(_focusedDay);
+                      setState(() {});
                     },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 4.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: getColorForShift(ShiftType.NACHT),
-                      ),
-                      padding:
-                          EdgeInsets.symmetric(vertical: 7, horizontal: 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            getShiftIcon(ShiftType.NACHT),
-                            size: 25,
-                          ),
-                          SizedBox(height: 20),
-                          Text(
-                            "Nacht",
-                            style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400),
-                            textAlign: TextAlign.center,
-                          )
-                        ],
-                      ),
-                    ),
+                    child: ShiftButton(ShiftType.NACHT),
                   ),
                 ],
               ),

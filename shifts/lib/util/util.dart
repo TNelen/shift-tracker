@@ -11,51 +11,30 @@ import 'package:table_calendar/table_calendar.dart';
 
 /// Example event class.
 class Event {
-  final String title;
+  final ShiftType shift;
 
-  const Event(this.title);
+  const Event(this.shift);
 
   @override
-  String toString() => title;
+  String toString() => getShiftName(shift);
 }
-
-/// Example events.
-///
-/// Using a [LinkedHashMap] is highly recommended if you decide to use a map.
-final kEvents = LinkedHashMap<DateTime, List<Event>>(
-  equals: isSameDay,
-  hashCode: getHashCode,
-)..addAll(_kEventSource);
-
-final _random = new Random();
-
-final _kEventSource = Map.fromIterable(List.generate(250, (index) => index),
-    key: (item) => DateTime.utc(kFirstDay.year, kFirstDay.month, item * 1),
-    value: (item) =>
-        List.generate(1, (index) => Event(getShiftType(_random.nextInt(4)))))
-  ..addAll({
-    kToday: [
-      Event('Today\'s Event 1'),
-      Event('Today\'s Event 2'),
-    ],
-  });
 
 int getHashCode(DateTime key) {
   return key.day * 1000000 + key.month * 10000 + key.year;
 }
 
-String getShiftType(int index) {
+ShiftType getShiftType(int index) {
   switch (index) {
     case 0:
-      return "Vroege";
+      return ShiftType.VROEGE;
     case 1:
-      return "Late";
+      return ShiftType.LATE;
     case 2:
-      return "Nacht";
+      return ShiftType.NACHT;
     case 3:
-      return "Vrij";
+      return ShiftType.VRIJ;
     default:
-      return "Vroege";
+      return ShiftType.VRIJ;
   }
 }
 
@@ -69,6 +48,32 @@ IconData getShiftIcon(ShiftType shift) {
       return Constants.nacht;
     default:
       return Constants.vrij;
+  }
+}
+
+String getShiftName(ShiftType shift) {
+  switch (shift) {
+    case ShiftType.VROEGE:
+      return "Vroege";
+    case ShiftType.LATE:
+      return "Late";
+    case ShiftType.NACHT:
+      return "Nacht";
+    default:
+      return "Vrij";
+  }
+}
+
+String getShiftTime(ShiftType shift) {
+  switch (shift) {
+    case ShiftType.VROEGE:
+      return Constants.tijd_vroege;
+    case ShiftType.LATE:
+      return Constants.tijd_late;
+    case ShiftType.NACHT:
+      return Constants.tijd_nacht;
+    default:
+      return "";
   }
 }
 

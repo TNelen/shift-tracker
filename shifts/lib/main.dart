@@ -5,6 +5,8 @@ import 'package:shifts/util/constants.dart';
 import 'package:shifts/util/shitfType.dart';
 import 'package:shifts/util/util.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 import 'package:intl/intl.dart';
 
 void main() {
@@ -48,6 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     _selectedEvents = ValueNotifier(_getEventsForDay(_focusedDay));
+    initializeDateFormatting('nl_BE', null);
+
     super.initState();
   }
 
@@ -90,6 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
           )),
       body: Column(children: [
         TableCalendar(
+          locale: 'nl_BE',
           firstDay: kFirstDay,
           lastDay: kLastDay,
           startingDayOfWeek: StartingDayOfWeek.monday,

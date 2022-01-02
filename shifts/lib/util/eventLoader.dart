@@ -8,10 +8,14 @@ import 'package:shifts/util/util.dart';
 class Eventloader {
   late LinkedHashMap<DateTime, List<Event>> events = LinkedHashMap();
   late SharedPreferences _prefs;
+  
 
-  void init() async {
+  Future<bool> init() async {
+    bool ready = false;
     _prefs = await SharedPreferences.getInstance();
-    loadAllEvents();
+    await loadAllEvents();
+    ready = true;
+    return ready;
   }
 
   Future<LinkedHashMap<DateTime, List<Event>>> loadAllEvents() async {
@@ -19,11 +23,11 @@ class Eventloader {
     LinkedHashMap<DateTime, List<Event>> eventMap = LinkedHashMap();
     eventDates = _prefs.getKeys();
     print("LoadAllEvents");
-    print("EventDates: ${eventDates}");
+    print("EventDates: $eventDates");
 
     for (String date in eventDates) {
       String? event = _prefs.getString(date);
-      print("Event loaded: ${event}");
+      print("Event loaded: $event");
       if (event != null) {
         eventMap.putIfAbsent(
             DateTime.parse(date), () => [Event(getShiftTypeFromString(event))]);

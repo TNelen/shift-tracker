@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -289,28 +290,72 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ),
                         SizedBox(
-                          height: 20,
+                          height: 10,
                         ),
-                        Center(
-                          child: ValueListenableBuilder<List<Event>>(
-                            valueListenable: _selectedEvents,
-                            builder: (context, events, _) {
-                              if (events.length != 0) {
-                                return ShiftEvent(events[0].shift);
-                              } else {
-                                return Text(
-                                  "Geen shift",
-                                  style: TextStyle(
-                                      color: Colors.black54,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w300),
-                                );
-                              }
-                            },
+                        Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 40, vertical: 4),
+                          child: Container(
+                            height: 81,
+                            child: Center(
+                              child: ValueListenableBuilder<List<Event>>(
+                                valueListenable: _selectedEvents,
+                                builder: (context, events, _) {
+                                  if (events.length != 0) {
+                                    return Dismissible(
+                                      key: UniqueKey(),
+                                      child: ShiftEvent(events[0].shift),
+                                      background: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          color: Constants.delete,
+                                        ),
+                                        alignment: Alignment.centerRight,
+                                        padding: EdgeInsets.only(right: 20.0),
+                                        child: Icon(Icons.delete,
+                                            color: Colors.white),
+                                      ),
+                                      secondaryBackground: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          color: Constants.delete,
+                                        ),
+                                        alignment: Alignment.centerRight,
+                                        padding: EdgeInsets.only(right: 20.0),
+                                        child: Icon(Icons.delete,
+                                            color: Colors.white),
+                                      ),
+                                      onDismissed: (direction) {
+                                        eventLoader.removeEvent(
+                                            _selectedDay ?? _focusedDay);
+
+                                        setState(() {
+                                          _selectedEvents.value =
+                                              _getEventsForDay(_focusedDay);
+                                        });
+                                      },
+                                    );
+                                  } else {
+                                    return SizedBox(
+                                      height: 81,
+                                      child: Text(
+                                        "Geen shift",
+                                        style: TextStyle(
+                                            color: Colors.black54,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w300),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(
-                          height: 15,
+                          height: 10,
                         ),
                         Center(
                           child: Text(
@@ -325,43 +370,56 @@ class _MyHomePageState extends State<MyHomePage> {
                           height: 15,
                         ),
                         Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  eventLoader.addEvent(
-                                      _selectedDay ?? _focusedDay,
-                                      ShiftType.VROEGE);
-                                  _selectedEvents.value =
-                                      _getEventsForDay(_focusedDay);
-                                  setState(() {});
-                                },
-                                child: ShiftButton(ShiftType.VROEGE),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  eventLoader.addEvent(
-                                      _selectedDay ?? _focusedDay,
-                                      ShiftType.LATE);
-                                  _selectedEvents.value =
-                                      _getEventsForDay(_focusedDay);
-                                  setState(() {});
-                                },
-                                child: ShiftButton(ShiftType.LATE),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  eventLoader.addEvent(
-                                      _selectedDay ?? _focusedDay,
-                                      ShiftType.NACHT);
-                                  _selectedEvents.value =
-                                      _getEventsForDay(_focusedDay);
-                                  setState(() {});
-                                },
-                                child: ShiftButton(ShiftType.NACHT),
-                              ),
-                            ],
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 45, vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    if (_selectedEvents.value.isEmpty) {
+                                      eventLoader.addEvent(
+                                          _selectedDay ?? _focusedDay,
+                                          ShiftType.VROEGE);
+                                      _selectedEvents.value =
+                                          _getEventsForDay(_focusedDay);
+                                      setState(() {});
+                                    }
+                                  },
+                                  child: ShiftButton(ShiftType.VROEGE,
+                                      _selectedEvents.value.isEmpty),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    if (_selectedEvents.value.isEmpty) {
+                                      eventLoader.addEvent(
+                                          _selectedDay ?? _focusedDay,
+                                          ShiftType.LATE);
+                                      _selectedEvents.value =
+                                          _getEventsForDay(_focusedDay);
+                                      setState(() {});
+                                    }
+                                  },
+                                  child: ShiftButton(ShiftType.LATE,
+                                      _selectedEvents.value.isEmpty),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    if (_selectedEvents.value.isEmpty) {
+                                      eventLoader.addEvent(
+                                          _selectedDay ?? _focusedDay,
+                                          ShiftType.NACHT);
+                                      _selectedEvents.value =
+                                          _getEventsForDay(_focusedDay);
+                                      setState(() {});
+                                    }
+                                  },
+                                  child: ShiftButton(ShiftType.NACHT,
+                                      _selectedEvents.value.isEmpty),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         SizedBox(
@@ -381,12 +439,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 );
               } else {
-                return SizedBox(
-                  child: CircularProgressIndicator(
-                    backgroundColor: Colors.red,
+                return Center(
+                  child: SizedBox(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.red,
+                    ),
+                    width: 50,
+                    height: 50,
                   ),
-                  width: 80,
-                  height: 80,
                 );
               }
             }));

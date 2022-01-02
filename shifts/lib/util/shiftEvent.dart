@@ -13,10 +13,7 @@ class ShiftEvent extends StatelessWidget {
     return Card(
       elevation: 0,
       color: Colors.grey.shade300,
-      margin: const EdgeInsets.symmetric(
-        horizontal: 40.0,
-        vertical: 4.0,
-      ),
+      
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(15)),
       ),

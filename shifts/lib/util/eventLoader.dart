@@ -8,7 +8,6 @@ import 'package:shifts/util/util.dart';
 class Eventloader {
   late LinkedHashMap<DateTime, List<Event>> events = LinkedHashMap();
   late SharedPreferences _prefs;
-  
 
   Future<bool> init() async {
     bool ready = false;
@@ -53,6 +52,13 @@ class Eventloader {
   void addEvent(DateTime time, ShiftType type) {
     _prefs.setString(time.toString(), getShiftName(type));
     this.events.putIfAbsent(time, () => [Event(type)]);
-    print("Event toegevoegd: ${time.toString()}, ${type}");
+    print("Event toegevoegd: ${time.toString()}, $type");
+  }
+
+  void removeEvent(DateTime time) {
+    this.events.remove(time);
+    _prefs.remove(time.toString());
+
+    print("Cached event verwijderd: ${time.toString()}");
   }
 }

@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shifts/util/constants.dart';
 import 'package:shifts/util/eventLoader.dart';
@@ -102,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
             future: isEventloaderInitialized,
             builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
               if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
+                  snapshot.data == true) {
                 return Column(children: [
                   TableCalendar(
                     locale: 'nl_BE',
@@ -440,12 +441,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               } else {
                 return Center(
-                  child: SizedBox(
-                    child: CircularProgressIndicator(
-                      backgroundColor: Colors.red,
-                    ),
-                    width: 50,
-                    height: 50,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GlowingProgressIndicator(
+                        child: Icon(
+                          Icons.child_care,
+                          color: Colors.black45,
+                          size: 100,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Text(
+                        "Shiften aan het laden...",
+                        style: TextStyle(
+                            color: Colors.black38,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400),
+                      ),
+                    ],
                   ),
                 );
               }

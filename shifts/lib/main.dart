@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,11 +45,11 @@ class _MyHomePageState extends State<MyHomePage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Eventloader eventLoader = Eventloader();
-  late final ValueNotifier<List<Event>> _selectedEvents;
+  late final ValueNotifier<List<SEvent>> _selectedEvents;
 
   late Future<bool> isEventloaderInitialized;
 
-  List<Event> _getEventsForDay(DateTime day) {
+  List<SEvent> _getEventsForDay(DateTime day) {
     return eventLoader.loadEventForDay(day);
   }
 
@@ -299,7 +300,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Container(
                             height: 81,
                             child: Center(
-                              child: ValueListenableBuilder<List<Event>>(
+                              child: ValueListenableBuilder<List<SEvent>>(
                                 valueListenable: _selectedEvents,
                                 builder: (context, events, _) {
                                   if (events.length != 0) {
@@ -385,6 +386,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ShiftType.VROEGE);
                                       _selectedEvents.value =
                                           _getEventsForDay(_focusedDay);
+                                      Add2Calendar.addEvent2Cal(
+                                        buildEvent(ShiftType.VROEGE),
+                                      );
+                                      Add2Calendar.addEvent2Cal(
+                                        buildEvent(ShiftType.VROEGE),
+                                      );
                                       setState(() {});
                                     }
                                   },

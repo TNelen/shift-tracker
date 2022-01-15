@@ -6,7 +6,7 @@ import 'package:shifts/util/shitfType.dart';
 import 'package:shifts/util/util.dart';
 
 class Eventloader {
-  late LinkedHashMap<DateTime, List<Event>> events = LinkedHashMap();
+  late LinkedHashMap<DateTime, List<SEvent>> events = LinkedHashMap();
   late SharedPreferences _prefs;
 
   Future<bool> init() async {
@@ -17,9 +17,9 @@ class Eventloader {
     return ready;
   }
 
-  Future<LinkedHashMap<DateTime, List<Event>>> loadAllEvents() async {
+  Future<LinkedHashMap<DateTime, List<SEvent>>> loadAllEvents() async {
     Set<String> eventDates = {};
-    LinkedHashMap<DateTime, List<Event>> eventMap = LinkedHashMap();
+    LinkedHashMap<DateTime, List<SEvent>> eventMap = LinkedHashMap();
     eventDates = _prefs.getKeys();
     print("LoadAllEvents");
     print("EventDates: $eventDates");
@@ -28,8 +28,8 @@ class Eventloader {
       String? event = _prefs.getString(date);
       print("Event loaded: $event");
       if (event != null) {
-        eventMap.putIfAbsent(
-            DateTime.parse(date), () => [Event(getShiftTypeFromString(event))]);
+        eventMap.putIfAbsent(DateTime.parse(date),
+            () => [SEvent(getShiftTypeFromString(event))]);
       }
     }
 
@@ -37,7 +37,7 @@ class Eventloader {
     return eventMap;
   }
 
-  List<Event> loadEventForDay(DateTime day) {
+  List<SEvent> loadEventForDay(DateTime day) {
     return this.events[day] ?? [];
   }
 
@@ -45,13 +45,13 @@ class Eventloader {
     return this.events[day] != [];
   }
 
-  LinkedHashMap<DateTime, List<Event>> returnAllEvents() {
+  LinkedHashMap<DateTime, List<SEvent>> returnAllEvents() {
     return this.events;
   }
 
   void addEvent(DateTime time, ShiftType type) {
     _prefs.setString(time.toString(), getShiftName(type));
-    this.events.putIfAbsent(time, () => [Event(type)]);
+    this.events.putIfAbsent(time, () => [SEvent(type)]);
     print("Event toegevoegd: ${time.toString()}, $type");
   }
 

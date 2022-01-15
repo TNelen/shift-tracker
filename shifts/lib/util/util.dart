@@ -4,16 +4,17 @@
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:shifts/util/constants.dart';
 import 'package:shifts/util/shitfType.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 /// Example event class.
-class Event {
+class SEvent {
   final ShiftType shift;
 
-  const Event(this.shift);
+  const SEvent(this.shift);
 
   @override
   String toString() => getShiftName(shift);
@@ -117,3 +118,20 @@ List<DateTime> daysInRange(DateTime first, DateTime last) {
 final kToday = DateTime.now();
 final kFirstDay = DateTime(kToday.year, kToday.month - 3, kToday.day);
 final kLastDay = DateTime(kToday.year, kToday.month + 3, kToday.day);
+
+Event buildEvent(ShiftType type) {
+  return Event(
+    title: type.name,
+    description: 'example',
+    location: 'AZ voorkempen',
+    startDate: DateTime.now(),
+    endDate: DateTime.now().add(Duration(minutes: 30)),
+    allDay: false,
+    iosParams: IOSParams(
+      reminder: Duration(minutes: 40),
+    ),
+    androidParams: AndroidParams(
+      emailInvites: ["test@example.com"],
+    ),
+  );
+}

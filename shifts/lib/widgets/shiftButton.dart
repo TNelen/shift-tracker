@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shifts/util/constants.dart';
-import 'package:shifts/util/eventLoader.dart';
+import 'package:shifts/sync/eventLoader.dart';
 import 'package:shifts/util/shitfType.dart';
 import 'package:shifts/util/util.dart';
 

@@ -1,4 +1,4 @@
-package com.example.shifts
+package com.comits.shifts
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -4,18 +4,27 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shifts/sync/queries/addEvent.dart';
+import 'package:shifts/sync/queries/removeEvent.dart';
 import 'package:shifts/util/constants.dart';
-import 'package:shifts/util/eventLoader.dart';
-import 'package:shifts/util/shiftButton.dart';
-import 'package:shifts/util/shiftEvent.dart';
+import 'package:shifts/sync/eventLoader.dart';
+import 'package:shifts/widgets/settingsPopup.dart';
+import 'package:shifts/widgets/shiftButton.dart';
+import 'package:shifts/widgets/shiftEvent.dart';
 import 'package:shifts/util/shitfType.dart';
 import 'package:shifts/util/util.dart';
+import 'package:shifts/widgets/syncPopup.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:intl/intl.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
@@ -23,7 +32,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -81,24 +89,41 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            backgroundColor: Constants.blue,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.child_care,
-                  color: Colors.black87,
-                  size: 30,
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                Text(
-                  'Kaatjes Kalender',
-                  style: TextStyle(color: Colors.black87),
-                ),
-              ],
-            )),
+          backgroundColor: Constants.blue,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.child_care,
+                color: Colors.black87,
+                size: 30,
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text(
+                'Kaatjes Kalender',
+                style: TextStyle(color: Colors.black87),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(
+                Icons.settings,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return SettingsPopup();
+                  },
+                );
+              },
+            )
+          ],
+        ),
         body: FutureBuilder<bool>(
             future: isEventloaderInitialized,
             builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
@@ -331,7 +356,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                       onDismissed: (direction) {
                                         eventLoader.removeEvent(
                                             _selectedDay ?? _focusedDay);
-
+                                        removeRemoteEvent(
+                                            eventLoader.calandarCode,
+                                            Event(events[0].shift),
+                                            _focusedDay);
                                         setState(() {
                                           _selectedEvents.value =
                                               _getEventsForDay(_focusedDay);
@@ -385,6 +413,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ShiftType.VROEGE);
                                       _selectedEvents.value =
                                           _getEventsForDay(_focusedDay);
+                                      addRemoteEvent(eventLoader.calandarCode,
+                                          Event(ShiftType.VROEGE), _focusedDay);
                                       setState(() {});
                                     }
                                   },
@@ -399,6 +429,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ShiftType.LATE);
                                       _selectedEvents.value =
                                           _getEventsForDay(_focusedDay);
+                                      addRemoteEvent(eventLoader.calandarCode,
+                                          Event(ShiftType.LATE), _focusedDay);
                                       setState(() {});
                                     }
                                   },
@@ -413,6 +445,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                           ShiftType.NACHT);
                                       _selectedEvents.value =
                                           _getEventsForDay(_focusedDay);
+                                      addRemoteEvent(eventLoader.calandarCode,
+                                          Event(ShiftType.NACHT), _focusedDay);
                                       setState(() {});
                                     }
                                   },

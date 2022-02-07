@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.shifts">
+    package="com.comits.shifts">
    <application
         android:label="shifts"
         android:icon="@mipmap/ic_launcher">

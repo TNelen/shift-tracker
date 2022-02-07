@@ -26,25 +26,48 @@ class Eventloader {
     LinkedHashMap<DateTime, List<Event>> eventMap = LinkedHashMap();
     eventDates = _prefs.getKeys();
     print("LoadAllEvents");
-    print("EventDates: $eventDates");
 
     eventDates.removeAll({"kalenderCode", "isHost"});
 
     for (String date in eventDates) {
       String? event = _prefs.getString(date);
-      print("Event loaded: $event");
       if (event != null) {
         eventMap.putIfAbsent(
             DateTime.parse(date), () => [Event(getShiftTypeFromString(event))]);
       }
     }
 
+    print("loaded events from storage" + eventMap.toString());
+
     this.events = eventMap;
     return eventMap;
   }
 
-  List<Event> loadEventForDay(DateTime day) {
-    return this.events[day] ?? [];
+  void addRemoteEventsToLocalStorage(
+      LinkedHashMap<DateTime, List<Event>> events) async {
+    Set<String> currentStoredEvents = {};
+    currentStoredEvents = _prefs.getKeys();
+    print("Added remote events to local storage");
+    currentStoredEvents.removeWhere(
+        (element) => (element != "kalenderCode" || element != "isHost"));
+
+    for (MapEntry<DateTime, List<Event>> event in events.entries) {
+      DateTime timeStamp =
+          DateTime(event.key.year, event.key.month, event.key.day);
+
+      String shiftName = getShiftName(event.value[0].shift);
+      _prefs.setString(timeStamp.toString(), shiftName);
+      this.events.putIfAbsent(event.key, () => [Event(event.value[0].shift)]);
+      print("Event toegevoegd: ${timeStamp.toString()}, $event.value[0].shift");
+    }
+    return;
+  }
+
+  List<Event> loadEventForDay(DateTime timeStamp) {
+    print("loadeventforday" + timeStamp.toString());
+    timeStamp = DateTime(timeStamp.year, timeStamp.month, timeStamp.day);
+    var result = this.events[timeStamp] ?? [];
+    return result;
   }
 
   bool dayHasEvent(DateTime day) {

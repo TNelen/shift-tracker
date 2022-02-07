@@ -78,14 +78,14 @@ String getShiftTime(ShiftType shift) {
 }
 
 ShiftType getShiftTypeFromString(String event) {
-  switch (event) {
-    case "Vroege":
+  switch (event.toUpperCase()) {
+    case "VROEGE":
       return ShiftType.VROEGE;
-    case "Late":
+    case "LATE":
       return ShiftType.LATE;
-    case "Nacht":
+    case "NACHT":
       return ShiftType.NACHT;
-    case "Vrij":
+    case "VRIJ":
       return ShiftType.VRIJ;
     default:
       return ShiftType.VRIJ;

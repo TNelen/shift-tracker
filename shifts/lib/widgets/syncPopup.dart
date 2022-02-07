@@ -2,13 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:shifts/sync/eventLoader.dart';
 import 'package:shifts/sync/getStatus.dart';
 import 'package:shifts/sync/queries/getEvents.dart';
 import 'package:shifts/util/constants.dart';
 import 'package:shifts/widgets/loadingPopup.dart';
 
 class SyncPopup extends StatefulWidget {
-  SyncPopup();
+  Eventloader eventloader;
+  SyncPopup(this.eventloader);
 
   @override
   State<StatefulWidget> createState() {
@@ -38,8 +40,10 @@ class _SyncPopupState extends State<SyncPopup> {
     setClientDevice();
     //check if calendar exits and import it
     print("importing calendar");
-    getEventsRemote(code).then(
-        (value) => value.isEmpty ? _btnController.error() : "onSuccess here");
+    getEventsRemote(code).then((value) => value.isEmpty
+        ? _btnController.error()
+        : widget.eventloader.addRemoteEventsToLocalStorage(value));
+    return;
   }
 
   @override

@@ -1,13 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shifts/sync/eventLoader.dart';
 import 'package:shifts/sync/queries/getKalenderCode.dart';
 import 'package:shifts/util/codeGenerator.dart';
 import 'package:shifts/widgets/loadingPopup.dart';
 import 'package:shifts/widgets/syncPopup.dart';
 
 class SettingsPopup extends StatefulWidget {
-  SettingsPopup();
+  Eventloader eventloader;
+  SettingsPopup(this.eventloader);
 
   @override
   State<StatefulWidget> createState() {
@@ -26,7 +28,7 @@ class _SettingsPopupState extends State<SettingsPopup> {
   @override
   Widget build(BuildContext context) {
     return isImporting
-        ? SyncPopup()
+        ? SyncPopup(widget.eventloader)
         : AlertDialog(
             backgroundColor: Colors.white,
             shape: const RoundedRectangleBorder(

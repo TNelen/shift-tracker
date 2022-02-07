@@ -7,5 +7,5 @@ String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
     length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 
 String generateCalendarCode() {
-  return getRandomString(8).toUpperCase();
+  return getRandomString(5).toUpperCase();
 }

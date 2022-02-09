@@ -43,7 +43,8 @@ class _SyncPopupState extends State<SyncPopup> {
     getEventsRemote(code).then((value) => value.isEmpty
         ? _btnController.error()
         : widget.eventloader.addRemoteEventsToLocalStorage(value));
-    return;
+    _btnController.success();
+    ;
   }
 
   @override

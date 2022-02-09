@@ -386,80 +386,91 @@ class _MyHomePageState extends State<MyHomePage> {
                         SizedBox(
                           height: 10,
                         ),
-                        Center(
-                          child: Text(
-                            "Plan shift",
-                            style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w300),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 15,
-                        ),
-                        Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 45, vertical: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    if (_selectedEvents.value.isEmpty) {
-                                      eventLoader.addEvent(
-                                          _selectedDay ?? _focusedDay,
-                                          ShiftType.VROEGE);
-                                      _selectedEvents.value =
-                                          _getEventsForDay(_focusedDay);
-                                      addRemoteEvent(eventLoader.calandarCode,
-                                          Event(ShiftType.VROEGE), _focusedDay);
-                                      setState(() {});
-                                    }
-                                  },
-                                  child: ShiftButton(ShiftType.VROEGE,
-                                      _selectedEvents.value.isEmpty),
+                        eventLoader.isHostDevice
+                            ? Column(children: [
+                                Center(
+                                  child: Text(
+                                    "Plan shift",
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w300),
+                                  ),
                                 ),
-                                InkWell(
-                                  onTap: () {
-                                    if (_selectedEvents.value.isEmpty) {
-                                      eventLoader.addEvent(
-                                          _selectedDay ?? _focusedDay,
-                                          ShiftType.LATE);
-                                      _selectedEvents.value =
-                                          _getEventsForDay(_focusedDay);
-                                      addRemoteEvent(eventLoader.calandarCode,
-                                          Event(ShiftType.LATE), _focusedDay);
-                                      setState(() {});
-                                    }
-                                  },
-                                  child: ShiftButton(ShiftType.LATE,
-                                      _selectedEvents.value.isEmpty),
+                                SizedBox(
+                                  height: 15,
                                 ),
-                                InkWell(
-                                  onTap: () {
-                                    if (_selectedEvents.value.isEmpty) {
-                                      eventLoader.addEvent(
-                                          _selectedDay ?? _focusedDay,
-                                          ShiftType.NACHT);
-                                      _selectedEvents.value =
-                                          _getEventsForDay(_focusedDay);
-                                      addRemoteEvent(eventLoader.calandarCode,
-                                          Event(ShiftType.NACHT), _focusedDay);
-                                      setState(() {});
-                                    }
-                                  },
-                                  child: ShiftButton(ShiftType.NACHT,
-                                      _selectedEvents.value.isEmpty),
+                                Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 45, vertical: 4),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            if (_selectedEvents.value.isEmpty) {
+                                              eventLoader.addEvent(
+                                                  _selectedDay ?? _focusedDay,
+                                                  ShiftType.VROEGE);
+                                              _selectedEvents.value =
+                                                  _getEventsForDay(_focusedDay);
+                                              addRemoteEvent(
+                                                  eventLoader.calandarCode,
+                                                  Event(ShiftType.VROEGE),
+                                                  _focusedDay);
+                                              setState(() {});
+                                            }
+                                          },
+                                          child: ShiftButton(ShiftType.VROEGE,
+                                              _selectedEvents.value.isEmpty),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            if (_selectedEvents.value.isEmpty) {
+                                              eventLoader.addEvent(
+                                                  _selectedDay ?? _focusedDay,
+                                                  ShiftType.LATE);
+                                              _selectedEvents.value =
+                                                  _getEventsForDay(_focusedDay);
+                                              addRemoteEvent(
+                                                  eventLoader.calandarCode,
+                                                  Event(ShiftType.LATE),
+                                                  _focusedDay);
+                                              setState(() {});
+                                            }
+                                          },
+                                          child: ShiftButton(ShiftType.LATE,
+                                              _selectedEvents.value.isEmpty),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            if (_selectedEvents.value.isEmpty) {
+                                              eventLoader.addEvent(
+                                                  _selectedDay ?? _focusedDay,
+                                                  ShiftType.NACHT);
+                                              _selectedEvents.value =
+                                                  _getEventsForDay(_focusedDay);
+                                              addRemoteEvent(
+                                                  eventLoader.calandarCode,
+                                                  Event(ShiftType.NACHT),
+                                                  _focusedDay);
+                                              setState(() {});
+                                            }
+                                          },
+                                          child: ShiftButton(ShiftType.NACHT,
+                                              _selectedEvents.value.isEmpty),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 50,
-                        ),
+                                SizedBox(
+                                  height: 50,
+                                ),
+                              ])
+                            : SizedBox(),
                       ],
                     ),
                   )),

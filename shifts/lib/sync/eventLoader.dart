@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shifts/sync/getStatus.dart';
 import 'package:shifts/sync/queries/addEvent.dart';
 import 'package:shifts/sync/queries/getKalenderCode.dart';
 import 'package:shifts/widgets/shiftButton.dart';
@@ -11,11 +12,13 @@ class Eventloader {
   late LinkedHashMap<DateTime, List<Event>> events = LinkedHashMap();
   late SharedPreferences _prefs;
   late String calandarCode;
+  late bool isHostDevice;
 
   Future<bool> init() async {
     bool ready = false;
     _prefs = await SharedPreferences.getInstance();
     calandarCode = await getCalendarCode();
+    isHostDevice = await ishostDevice();
     await loadAllLocalEvents();
     ready = true;
     return ready;
@@ -41,6 +44,19 @@ class Eventloader {
 
     this.events = eventMap;
     return eventMap;
+  }
+
+  Future<bool> removeAllLocalEvents() async {
+    Set<String> eventDates = {};
+    eventDates = _prefs.getKeys();
+    print("RemoveAllLocalEvents");
+
+    eventDates.removeAll({"kalenderCode", "isHost"});
+
+    for (String date in eventDates) {
+      _prefs.remove(date);
+    }
+    return true;
   }
 
   void addRemoteEventsToLocalStorage(

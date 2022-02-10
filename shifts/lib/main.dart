@@ -79,6 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
       _focusedDay = focusedDay;
+      print("selectedDaty" + selectedDay.toString());
       _selectedDay = selectedDay;
     });
 
@@ -161,7 +162,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                       outsideBuilder: (context, day, focusedDay) {
                         final text = day.day.toString();
-
                         return Center(
                           child: Container(
                             width: 50,
@@ -180,7 +180,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                       todayBuilder: (context, day, focusedDay) {
                         final text = day.day.toString();
-
                         return Center(
                           child: Container(
                             width: 200,
@@ -202,11 +201,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       markerBuilder: (context, day, events) {
                         ShiftType shift = ShiftType.VRIJ;
                         for (var e in events) {
-                          if (e.toString().contains("Vroege")) {
+                          String event = e.toString().toUpperCase();
+                          if (event.contains("VROEGE")) {
                             shift = ShiftType.VROEGE;
-                          } else if (e.toString().contains("Late")) {
+                          } else if (event.contains("LATE")) {
                             shift = ShiftType.LATE;
-                          } else if (e.toString().contains("Nacht")) {
+                          } else if (event.contains("NACHT")) {
                             shift = ShiftType.NACHT;
                           } else {
                             shift = ShiftType.VRIJ;
@@ -409,14 +409,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         InkWell(
-                                          onTap: () {
+                                          onTap: () async {
                                             if (_selectedEvents.value.isEmpty) {
                                               eventLoader.addEvent(
                                                   _selectedDay ?? _focusedDay,
                                                   ShiftType.VROEGE);
                                               _selectedEvents.value =
                                                   _getEventsForDay(_focusedDay);
-                                              addRemoteEvent(
+                                              await addRemoteEvent(
                                                   eventLoader.calandarCode,
                                                   Event(ShiftType.VROEGE),
                                                   _focusedDay);
@@ -427,14 +427,15 @@ class _MyHomePageState extends State<MyHomePage> {
                                               _selectedEvents.value.isEmpty),
                                         ),
                                         InkWell(
-                                          onTap: () {
+                                          onTap: () async {
                                             if (_selectedEvents.value.isEmpty) {
                                               eventLoader.addEvent(
                                                   _selectedDay ?? _focusedDay,
                                                   ShiftType.LATE);
                                               _selectedEvents.value =
                                                   _getEventsForDay(_focusedDay);
-                                              addRemoteEvent(
+
+                                              await addRemoteEvent(
                                                   eventLoader.calandarCode,
                                                   Event(ShiftType.LATE),
                                                   _focusedDay);
@@ -445,17 +446,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                               _selectedEvents.value.isEmpty),
                                         ),
                                         InkWell(
-                                          onTap: () {
+                                          onTap: () async {
                                             if (_selectedEvents.value.isEmpty) {
                                               eventLoader.addEvent(
                                                   _selectedDay ?? _focusedDay,
                                                   ShiftType.NACHT);
-                                              _selectedEvents.value =
-                                                  _getEventsForDay(_focusedDay);
-                                              addRemoteEvent(
+
+                                              await addRemoteEvent(
                                                   eventLoader.calandarCode,
                                                   Event(ShiftType.NACHT),
                                                   _focusedDay);
+                                              _selectedEvents.value =
+                                                  _getEventsForDay(_focusedDay);
                                               setState(() {});
                                             }
                                           },

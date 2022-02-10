@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:shifts/main.dart';
 import 'package:shifts/sync/eventLoader.dart';
 import 'package:shifts/sync/getStatus.dart';
 import 'package:shifts/sync/queries/getEvents.dart';
+import 'package:shifts/sync/queries/getKalenderCode.dart';
 import 'package:shifts/util/constants.dart';
 import 'package:shifts/widgets/loadingPopup.dart';
 
@@ -38,12 +40,22 @@ class _SyncPopupState extends State<SyncPopup> {
     }
     // set this calendar as a client device
     setClientDevice();
+    //set the calendar code
+    setCalendarCode(code);
+    //clear local storage
+    widget.eventloader.removeAllLocalEvents();
     //check if calendar exits and import it
     print("importing calendar");
-    getEventsRemote(code).then((value) => value.isEmpty
+    await getEventsRemote(code).then((value) => value.isEmpty
         ? _btnController.error()
         : widget.eventloader.addRemoteEventsToLocalStorage(value));
     _btnController.success();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => MyApp(),
+      ),
+    );
     ;
   }
 

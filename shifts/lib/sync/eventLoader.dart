@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shifts/sync/getStatus.dart';
 import 'package:shifts/sync/queries/addEvent.dart';
+import 'package:shifts/sync/queries/getEvents.dart';
 import 'package:shifts/sync/queries/getKalenderCode.dart';
 import 'package:shifts/widgets/shiftButton.dart';
 import 'package:shifts/util/shitfType.dart';
@@ -18,8 +19,15 @@ class Eventloader {
     bool ready = false;
     _prefs = await SharedPreferences.getInstance();
     calandarCode = await getCalendarCode();
+
     isHostDevice = await ishostDevice();
     await loadAllLocalEvents();
+    if (!isHostDevice) {
+      print("No host device: Getting remove events");
+      await getEventsRemote(calandarCode).then((value) => value.isEmpty
+          ? print("no events to add")
+          : addRemoteEventsToLocalStorage(value));
+    }
     ready = true;
     return ready;
   }
@@ -33,7 +41,9 @@ class Eventloader {
     eventDates.removeAll({"kalenderCode", "isHost"});
 
     for (String date in eventDates) {
+      print("date: " + date);
       String? event = _prefs.getString(date);
+      print("event" + event.toString());
       if (event != null) {
         eventMap.putIfAbsent(
             DateTime.parse(date), () => [Event(getShiftTypeFromString(event))]);
@@ -61,27 +71,17 @@ class Eventloader {
 
   void addRemoteEventsToLocalStorage(
       LinkedHashMap<DateTime, List<Event>> events) async {
-    Set<String> currentStoredEvents = {};
-    currentStoredEvents = _prefs.getKeys();
-    print("Added remote events to local storage");
-    currentStoredEvents.removeWhere(
-        (element) => (element != "kalenderCode" || element != "isHost"));
-
     for (MapEntry<DateTime, List<Event>> event in events.entries) {
-      DateTime timeStamp =
-          DateTime(event.key.year, event.key.month, event.key.day);
-
       String shiftName = getShiftName(event.value[0].shift);
-      _prefs.setString(timeStamp.toString(), shiftName);
-      this.events.putIfAbsent(event.key, () => [Event(event.value[0].shift)]);
-      print("Event toegevoegd: ${timeStamp.toString()}, $event.value[0].shift");
+      DateTime UTCdate = event.key.toUtc();
+      _prefs.setString(UTCdate.toString(), shiftName);
+      this.events.putIfAbsent(UTCdate, () => [Event(event.value[0].shift)]);
+      print("Event toegevoegd: ${UTCdate.toString()}, $event.value[0].shift");
     }
     return;
   }
 
   List<Event> loadEventForDay(DateTime timeStamp) {
-    print("loadeventforday" + timeStamp.toString());
-    timeStamp = DateTime(timeStamp.year, timeStamp.month, timeStamp.day);
     var result = this.events[timeStamp] ?? [];
     return result;
   }
@@ -95,15 +95,16 @@ class Eventloader {
   }
 
   void addEvent(DateTime time, ShiftType type) {
-    _prefs.setString(time.toString(), getShiftName(type));
+    print("add event datetime " + time.toString());
+    _prefs.setString(time.toUtc().toString(), getShiftName(type));
     this.events.putIfAbsent(time, () => [Event(type)]);
-    print("Event toegevoegd: ${time.toString()}, $type");
+    print("lokaal event toegevoegd: ${time.toString()}, $type");
   }
 
   void removeEvent(DateTime time) {
     this.events.remove(time);
     _prefs.remove(time.toString());
 
-    print("Cached event verwijderd: ${time.toString()}");
+    print("lokaal event verwijderd: ${time.toString()}");
   }
 }

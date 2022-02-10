@@ -13,7 +13,7 @@ Future<void> addRemoteEvent(
       await FirebaseFirestore.instance.collection(calendarId);
   // Call the user's CollectionReference to add a new user
   return events
-      .doc(date.millisecondsSinceEpoch.toString())
+      .doc(date.toUtc().millisecondsSinceEpoch.toString())
       .set({
         'shift': event.shift.name, // John Doe
       })

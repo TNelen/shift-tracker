@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:shifts/main.dart';
 import 'package:shifts/sync/eventLoader.dart';
 import 'package:shifts/sync/getStatus.dart';
 import 'package:shifts/sync/queries/getKalenderCode.dart';
@@ -28,9 +29,17 @@ class _SettingsPopupState extends State<SettingsPopup> {
 
   void _disableConnection() async {
     await setHostDevice();
+    await resetCalendarCode();
+    
     //remove all imported events from local storage
     await widget.eventloader.removeAllLocalEvents();
     _btnController.success();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => MyApp(),
+      ),
+    );
     ;
   }
 

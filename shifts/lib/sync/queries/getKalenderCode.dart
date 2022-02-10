@@ -14,3 +14,22 @@ Future<String> getCalendarCode() async {
 
   return code;
 }
+
+Future<String> resetCalendarCode() async {
+  late SharedPreferences _prefs;
+  _prefs = await SharedPreferences.getInstance();
+
+  String code = generateCalendarCode();
+  _prefs.setString("kalenderCode", code);
+
+  return code;
+}
+
+Future<String> setCalendarCode(String code) async {
+  late SharedPreferences _prefs;
+  _prefs = await SharedPreferences.getInstance();
+
+  _prefs.setString("kalenderCode", code);
+
+  return code;
+}

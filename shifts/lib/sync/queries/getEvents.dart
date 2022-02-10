@@ -14,9 +14,15 @@ Future<LinkedHashMap<DateTime, List<Event>>> getEventsRemote(
       .collection(calendarId)
       .get()
       .then((querySnapshot) => querySnapshot.docs.forEach((element) {
-            print(element);
+            print(element.id.toString());
+            DateTime time =  DateTime.fromMillisecondsSinceEpoch(int.parse(element.id));
+
+            print(DateTime(time.year, time.day, time.month));
+            print(DateTime.fromMillisecondsSinceEpoch(int.parse(element.id)));
+
             events.putIfAbsent(
-                DateTime.fromMillisecondsSinceEpoch(int.parse(element.id)),
+                DateTime.fromMillisecondsSinceEpoch(int.parse(element.id))
+                    .toLocal(),
                 () => [Event(getShiftTypeFromString(element["shift"]))]);
           }));
 

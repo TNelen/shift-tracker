@@ -46,16 +46,19 @@ class _SyncPopupState extends State<SyncPopup> {
     widget.eventloader.removeAllLocalEvents();
     //check if calendar exits and import it
     print("importing calendar");
-    await getEventsRemote(code).then((value) => value.isEmpty
+    await getEventsRemoteQuery(code).then((value) => value.isEmpty
         ? _btnController.error()
-        : widget.eventloader.addRemoteEventsToLocalStorage(value));
-    _btnController.success();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (BuildContext context) => MyApp(),
-      ),
-    );
+        : {
+            widget.eventloader.addRemoteEventsToLocalStorage(value),
+            _btnController.success(),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => MyApp(),
+              ),
+            )
+          });
+
     ;
   }
 
@@ -103,7 +106,7 @@ class _SyncPopupState extends State<SyncPopup> {
                   errorColor: Constants.delete,
                   controller: _btnController,
                   onPressed: () => _importCalendar(code),
-                  valueColor: Colors.black,
+                  valueColor: Colors.white,
                   borderRadius: 8,
                   width: 150,
                   height: 40,

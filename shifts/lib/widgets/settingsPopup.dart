@@ -123,7 +123,7 @@ class _SettingsPopupState extends State<SettingsPopup> {
                                       errorColor: Constants.delete,
                                       controller: _btnController,
                                       onPressed: () => _disableConnection(),
-                                      valueColor: Colors.black,
+                                      valueColor: Colors.white,
                                       borderRadius: 8,
                                       width: 150,
                                       height: 40,

@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shifts/sync/getStatus.dart';
 import 'package:shifts/sync/queries/addEvent.dart';
@@ -12,24 +13,31 @@ import 'package:shifts/util/util.dart';
 class Eventloader {
   late LinkedHashMap<DateTime, List<Event>> events = LinkedHashMap();
   late SharedPreferences _prefs;
-  late String calandarCode;
+  late String calendarCode;
   late bool isHostDevice;
+
+  Eventloader();
 
   Future<bool> init() async {
     bool ready = false;
     _prefs = await SharedPreferences.getInstance();
-    calandarCode = await getCalendarCode();
+    calendarCode = await getCalendarCode();
 
     isHostDevice = await ishostDevice();
     await loadAllLocalEvents();
     if (!isHostDevice) {
-      print("No host device: Getting remove events");
-      await getEventsRemote(calandarCode).then((value) => value.isEmpty
-          ? print("no events to add")
-          : addRemoteEventsToLocalStorage(value));
+      print("No host device: Getting remote events");
     }
+    await getEventsRemote();
+
     ready = true;
     return ready;
+  }
+
+  Future<void> getEventsRemote() async {
+    await getEventsRemoteQuery(calendarCode).then((value) => value.isEmpty
+        ? print("no events to add")
+        : addRemoteEventsToLocalStorage(value));
   }
 
   Future<LinkedHashMap<DateTime, List<Event>>> loadAllLocalEvents() async {
@@ -76,7 +84,6 @@ class Eventloader {
       DateTime UTCdate = event.key.toUtc();
       _prefs.setString(UTCdate.toString(), shiftName);
       this.events.putIfAbsent(UTCdate, () => [Event(event.value[0].shift)]);
-      print("Event toegevoegd: ${UTCdate.toString()}, $event.value[0].shift");
     }
     return;
   }
@@ -104,7 +111,6 @@ class Eventloader {
   void removeEvent(DateTime time) {
     this.events.remove(time);
     _prefs.remove(time.toString());
-
     print("lokaal event verwijderd: ${time.toString()}");
   }
 }

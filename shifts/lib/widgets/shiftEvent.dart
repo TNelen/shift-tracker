@@ -41,7 +41,9 @@ class ShiftEvent extends StatelessWidget {
             SizedBox(
               width: 20,
             ),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
                 getShiftName(shiftType),
                 style: TextStyle(

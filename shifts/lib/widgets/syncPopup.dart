@@ -38,17 +38,18 @@ class _SyncPopupState extends State<SyncPopup> {
     if (code == "") {
       _btnController.error();
     }
-    // set this calendar as a client device
-    setClientDevice();
-    //set the calendar code
-    setCalendarCode(code);
-    //clear local storage
-    widget.eventloader.removeAllLocalEvents();
-    //check if calendar exits and import it
-    print("importing calendar");
+
     await getEventsRemoteQuery(code).then((value) => value.isEmpty
         ? _btnController.error()
         : {
+            // set this calendar as a client device
+            setClientDevice(),
+            //set the calendar code
+            setCalendarCode(code),
+            //clear local storage
+            widget.eventloader.removeAllLocalEvents(),
+            //check if calendar exits and import it
+            print("importing calendar"),
             widget.eventloader.addRemoteEventsToLocalStorage(value),
             _btnController.success(),
             Navigator.push(

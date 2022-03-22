@@ -9,15 +9,7 @@ import 'package:shifts/util/constants.dart';
 import 'package:shifts/util/shitfType.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-/// Example event class.
-class Event {
-  final ShiftType shift;
 
-  const Event(this.shift);
-
-  @override
-  String toString() => getShiftName(shift);
-}
 
 int getHashCode(DateTime key) {
   return key.day * 1000000 + key.month * 10000 + key.year;

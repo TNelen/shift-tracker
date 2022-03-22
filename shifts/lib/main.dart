@@ -2,13 +2,15 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shifts/models/event.dart';
+import 'package:shifts/repositories/eventRepository.dart';
 import 'package:shifts/sync/queries/addEvent.dart';
 import 'package:shifts/sync/queries/removeEvent.dart';
 import 'package:shifts/util/constants.dart';
-import 'package:shifts/sync/eventLoader.dart';
 import 'package:shifts/widgets/settingsPopup.dart';
 import 'package:shifts/widgets/shiftButton.dart';
 import 'package:shifts/widgets/shiftEvent.dart';
@@ -21,11 +23,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:intl/intl.dart';
 
+GetIt getIt = GetIt.instance;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  getIt.registerSingleton<EventRepository>(EventRepository(), signalsReady: true);
   runApp(MyApp());
 }
 
@@ -52,16 +58,15 @@ class _MyHomePageState extends State<MyHomePage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  Eventloader eventLoader = Eventloader();
+  EventRepository eventRepo = getIt.get<EventRepository>();
   late final ValueNotifier<List<Event>> _selectedEvents;
 
-  RefreshController _refreshController =
-      RefreshController(initialRefresh: false);
+  RefreshController _refreshController = RefreshController(initialRefresh: false);
 
-  late Future<bool> isEventloaderInitialized;
+  late Future<bool> isEventRepoInitialized;
 
   List<Event> _getEventsForDay(DateTime day) {
-    return eventLoader.loadEventForDay(day);
+    return eventRepo.loadEventForDay(day);
   }
 
   @override
@@ -71,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _selectedEvents = ValueNotifier(_getEventsForDay(_focusedDay));
     initializeDateFormatting('nl_BE', null);
 
-    isEventloaderInitialized = eventLoader.init();
+    isEventRepoInitialized = eventRepo.init();
   }
 
   @override
@@ -95,16 +100,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void addEvent(ShiftType type) async {
     if (_selectedEvents.value.isEmpty) {
-      eventLoader.addEvent(_selectedDay ?? _focusedDay, type);
+      eventRepo.addEvent(_selectedDay ?? _focusedDay, type);
       _selectedEvents.value = _getEventsForDay(_focusedDay);
-      await addRemoteEvent(eventLoader.calendarCode, Event(type), _focusedDay);
+      await addRemoteEvent(eventRepo.calendarCode, Event(type), _focusedDay);
       setState(() {});
     }
   }
 
   void _onRefresh() async {
     //refetching remote events
-    await eventLoader.getEventsRemote();
+    await eventRepo.getEventsRemote();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       Icon(
@@ -155,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return SettingsPopup(eventLoader);
+                    return SettingsPopup();
                   },
                 );
               },
@@ -163,14 +168,13 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
         body: FutureBuilder<bool>(
-            future: isEventloaderInitialized,
+            future: isEventRepoInitialized,
             builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.data == true) {
+              if (snapshot.connectionState == ConnectionState.done && snapshot.data == true) {
                 return SmartRefresher(
                     controller: _refreshController,
                     //only enable refresh if you are subscribed to ther calendar
-                    enablePullDown: !eventLoader.isHostDevice,
+                    enablePullDown: !eventRepo.isHostDevice,
                     onRefresh: _onRefresh,
                     child: Column(children: [
                       TableCalendar(
@@ -207,9 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               child: Container(
                                 width: 50,
                                 height: 50,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    color: Colors.grey.withOpacity(0.05)),
+                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.0), color: Colors.grey.withOpacity(0.05)),
                                 child: Center(
                                   child: Text(
                                     text,
@@ -225,11 +227,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               child: Container(
                                 width: 200,
                                 height: 50,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    border: Border.all(
-                                        width: 0.5, color: Colors.black),
-                                    color: Colors.grey.withOpacity(0.2)),
+                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.0), border: Border.all(width: 0.5, color: Colors.black), color: Colors.grey.withOpacity(0.2)),
                                 child: Center(
                                   child: Text(
                                     text,
@@ -257,9 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               return Container(
                                 width: 40,
                                 height: 10,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    color: getColorForShift(shift)),
+                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.0), color: getColorForShift(shift)),
                               );
                             } else if (shift == ShiftType.VRIJ) {
                               return SizedBox();
@@ -272,9 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               child: Container(
                                 width: 50,
                                 height: 50,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    color: Colors.grey.withOpacity(0.2)),
+                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.0), color: Colors.grey.withOpacity(0.2)),
                                 child: Center(
                                   child: Text(
                                     text,
@@ -328,20 +322,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                               // displaying formatted date
                                               .format(_selectedDay!),
-                                          style: TextStyle(
-                                              color: Colors.black87,
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.w600),
+                                          style: TextStyle(color: Colors.black87, fontSize: 22, fontWeight: FontWeight.w600),
                                         )
                                       : Text(
                                           DateFormat.MMMMEEEEd("nl_BE")
 
                                               // displaying formatted date
                                               .format(_focusedDay),
-                                          style: TextStyle(
-                                              color: Colors.black87,
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.w600),
+                                          style: TextStyle(color: Colors.black87, fontSize: 22, fontWeight: FontWeight.w600),
                                         ),
                                 ),
                                 SizedBox(
@@ -350,70 +338,47 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Center(
                                   child: Text(
                                     "Geplande shift",
-                                    style: TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w300),
+                                    style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w300),
                                   ),
                                 ),
                                 SizedBox(
                                   height: 10,
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 40, vertical: 4),
+                                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 4),
                                   child: Container(
                                     height: 81,
                                     child: Center(
-                                      child:
-                                          ValueListenableBuilder<List<Event>>(
+                                      child: ValueListenableBuilder<List<Event>>(
                                         valueListenable: _selectedEvents,
                                         builder: (context, events, _) {
                                           if (events.length != 0) {
                                             return Dismissible(
                                               key: UniqueKey(),
-                                              child:
-                                                  ShiftEvent(events[0].shift),
+                                              child: ShiftEvent(events[0].shift),
                                               background: Container(
                                                 decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  borderRadius: BorderRadius.circular(8.0),
                                                   color: Constants.delete,
                                                 ),
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                padding: EdgeInsets.only(
-                                                    right: 20.0),
-                                                child: Icon(Icons.delete,
-                                                    color: Colors.white),
+                                                alignment: Alignment.centerRight,
+                                                padding: EdgeInsets.only(right: 20.0),
+                                                child: Icon(Icons.delete, color: Colors.white),
                                               ),
                                               secondaryBackground: Container(
                                                 decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                  borderRadius: BorderRadius.circular(8.0),
                                                   color: Constants.delete,
                                                 ),
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                padding: EdgeInsets.only(
-                                                    right: 20.0),
-                                                child: Icon(Icons.delete,
-                                                    color: Colors.white),
+                                                alignment: Alignment.centerRight,
+                                                padding: EdgeInsets.only(right: 20.0),
+                                                child: Icon(Icons.delete, color: Colors.white),
                                               ),
                                               onDismissed: (direction) {
-                                                eventLoader.removeEvent(
-                                                    _selectedDay ??
-                                                        _focusedDay);
-                                                removeRemoteEvent(
-                                                    eventLoader.calendarCode,
-                                                    Event(events[0].shift),
-                                                    _focusedDay);
+                                                eventRepo.removeEvent(_selectedDay ?? _focusedDay);
+                                                removeRemoteEvent(eventRepo.calendarCode, Event(events[0].shift), _focusedDay);
                                                 setState(() {
-                                                  _selectedEvents.value =
-                                                      _getEventsForDay(
-                                                          _focusedDay);
+                                                  _selectedEvents.value = _getEventsForDay(_focusedDay);
                                                 });
                                               },
                                             );
@@ -422,11 +387,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                               height: 41,
                                               child: Text(
                                                 "Geen shift",
-                                                style: TextStyle(
-                                                    color: Colors.black54,
-                                                    fontSize: 15,
-                                                    fontWeight:
-                                                        FontWeight.w300),
+                                                style: TextStyle(color: Colors.black54, fontSize: 15, fontWeight: FontWeight.w300),
                                               ),
                                             );
                                           }
@@ -438,15 +399,12 @@ class _MyHomePageState extends State<MyHomePage> {
                                 SizedBox(
                                   height: 10,
                                 ),
-                                eventLoader.isHostDevice
+                                eventRepo.isHostDevice
                                     ? Column(children: [
                                         Center(
                                           child: Text(
                                             "Plan shift",
-                                            style: TextStyle(
-                                                color: Colors.black87,
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w300),
+                                            style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w300),
                                           ),
                                         ),
                                         SizedBox(
@@ -454,36 +412,21 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ),
                                         Center(
                                           child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 45, vertical: 4),
+                                            padding: EdgeInsets.symmetric(horizontal: 45, vertical: 4),
                                             child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
                                                 InkWell(
-                                                  onTap: () async => addEvent(
-                                                      ShiftType.VROEGE),
-                                                  child: ShiftButton(
-                                                      ShiftType.VROEGE,
-                                                      _selectedEvents
-                                                          .value.isEmpty),
+                                                  onTap: () async => addEvent(ShiftType.VROEGE),
+                                                  child: ShiftButton(ShiftType.VROEGE, _selectedEvents.value.isEmpty),
                                                 ),
                                                 InkWell(
-                                                  onTap: () async =>
-                                                      addEvent(ShiftType.LATE),
-                                                  child: ShiftButton(
-                                                      ShiftType.LATE,
-                                                      _selectedEvents
-                                                          .value.isEmpty),
+                                                  onTap: () async => addEvent(ShiftType.LATE),
+                                                  child: ShiftButton(ShiftType.LATE, _selectedEvents.value.isEmpty),
                                                 ),
                                                 InkWell(
-                                                  onTap: () async =>
-                                                      addEvent(ShiftType.NACHT),
-                                                  child: ShiftButton(
-                                                      ShiftType.NACHT,
-                                                      _selectedEvents
-                                                          .value.isEmpty),
+                                                  onTap: () async => addEvent(ShiftType.NACHT),
+                                                  child: ShiftButton(ShiftType.NACHT, _selectedEvents.value.isEmpty),
                                                 ),
                                               ],
                                             ),
@@ -498,8 +441,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           )),
                     ]));
-              } else if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasError) {
+              } else if (snapshot.connectionState == ConnectionState.done && snapshot.hasError) {
                 return Padding(
                   padding: const EdgeInsets.only(top: 30),
                   child: Text(
@@ -524,10 +466,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       Text(
                         "Shiften aan het laden...",
-                        style: TextStyle(
-                            color: Colors.black38,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400),
+                        style: TextStyle(color: Colors.black38, fontSize: 15, fontWeight: FontWeight.w400),
                       ),
                     ],
                   ),

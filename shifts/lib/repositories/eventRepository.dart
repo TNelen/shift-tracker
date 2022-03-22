@@ -1,22 +1,20 @@
 import 'dart:collection';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:rxdart/subjects.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shifts/models/event.dart';
 import 'package:shifts/sync/getStatus.dart';
-import 'package:shifts/sync/queries/addEvent.dart';
 import 'package:shifts/sync/queries/getEvents.dart';
 import 'package:shifts/sync/queries/getKalenderCode.dart';
-import 'package:shifts/widgets/shiftButton.dart';
 import 'package:shifts/util/shitfType.dart';
 import 'package:shifts/util/util.dart';
 
-class Eventloader {
+class EventRepository {
   late LinkedHashMap<DateTime, List<Event>> events = LinkedHashMap();
   late SharedPreferences _prefs;
   late String calendarCode;
   late bool isHostDevice;
-
-  Eventloader();
 
   Future<bool> init() async {
     bool ready = false;
@@ -35,9 +33,7 @@ class Eventloader {
   }
 
   Future<void> getEventsRemote() async {
-    await getEventsRemoteQuery(calendarCode).then((value) => value.isEmpty
-        ? print("no events to add")
-        : addRemoteEventsToLocalStorage(value));
+    await getEventsRemoteQuery(calendarCode).then((value) => value.isEmpty ? print("no events to add") : addRemoteEventsToLocalStorage(value));
   }
 
   Future<LinkedHashMap<DateTime, List<Event>>> loadAllLocalEvents() async {
@@ -53,8 +49,7 @@ class Eventloader {
       String? event = _prefs.getString(date);
       print("event" + event.toString());
       if (event != null) {
-        eventMap.putIfAbsent(
-            DateTime.parse(date), () => [Event(getShiftTypeFromString(event))]);
+        eventMap.putIfAbsent(DateTime.parse(date), () => [Event(getShiftTypeFromString(event))]);
       }
     }
 
@@ -77,8 +72,7 @@ class Eventloader {
     return true;
   }
 
-  void addRemoteEventsToLocalStorage(
-      LinkedHashMap<DateTime, List<Event>> events) async {
+  void addRemoteEventsToLocalStorage(LinkedHashMap<DateTime, List<Event>> events) async {
     for (MapEntry<DateTime, List<Event>> event in events.entries) {
       String shiftName = getShiftName(event.value[0].shift);
       DateTime UTCdate = event.key.toUtc();

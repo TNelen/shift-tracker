@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shifts/main.dart';
-import 'package:shifts/sync/eventLoader.dart';
+import 'package:shifts/repositories/eventRepository.dart';
 import 'package:shifts/sync/getStatus.dart';
 import 'package:shifts/sync/queries/getEvents.dart';
 import 'package:shifts/sync/queries/getKalenderCode.dart';
@@ -11,8 +11,7 @@ import 'package:shifts/util/constants.dart';
 import 'package:shifts/widgets/loadingPopup.dart';
 
 class SyncPopup extends StatefulWidget {
-  Eventloader eventloader;
-  SyncPopup(this.eventloader);
+  SyncPopup();
 
   @override
   State<StatefulWidget> createState() {
@@ -26,8 +25,9 @@ class _SyncPopupState extends State<SyncPopup> {
   String error = '';
   bool isSuccess = false;
 
-  final RoundedLoadingButtonController _btnController =
-      RoundedLoadingButtonController();
+  EventRepository eventRepo = getIt.get<EventRepository>();
+
+  final RoundedLoadingButtonController _btnController = RoundedLoadingButtonController();
 
   @override
   void initState() {
@@ -47,10 +47,10 @@ class _SyncPopupState extends State<SyncPopup> {
             //set the calendar code
             setCalendarCode(code),
             //clear local storage
-            widget.eventloader.removeAllLocalEvents(),
+            eventRepo.removeAllLocalEvents(),
             //check if calendar exits and import it
             print("importing calendar"),
-            widget.eventloader.addRemoteEventsToLocalStorage(value),
+            eventRepo.addRemoteEventsToLocalStorage(value),
             _btnController.success(),
             Navigator.push(
               context,
@@ -69,13 +69,11 @@ class _SyncPopupState extends State<SyncPopup> {
         ? LoadingPopup()
         : AlertDialog(
             backgroundColor: Colors.white,
-            shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(30.0))),
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30.0))),
             title: Center(
               child: Text(
                 "Instellingen",
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
               ),
             ),
             content: Container(

@@ -1,7 +1,5 @@
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
-import 'package:rxdart/subjects.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shifts/models/event.dart';
 import 'package:shifts/sync/getStatus.dart';
@@ -14,7 +12,7 @@ class EventRepository {
   late LinkedHashMap<DateTime, List<Event>> events = LinkedHashMap();
   late SharedPreferences _prefs;
   late String calendarCode;
-  late bool isHostDevice;
+  late bool isHostDevice = true;
 
   Future<bool> init() async {
     bool ready = false;
@@ -26,7 +24,7 @@ class EventRepository {
     if (!isHostDevice) {
       print("No host device: Getting remote events");
     }
-    await getEventsRemote();
+    //await getEventsRemote();
 
     ready = true;
     return ready;
@@ -42,7 +40,7 @@ class EventRepository {
     eventDates = _prefs.getKeys();
     print("LoadAllEvents");
 
-    eventDates.removeAll({"kalenderCode", "isHost"});
+    eventDates.removeAll({"kalenderCode", "isHost", "timeVroege", "timeLate", "timeNacht", "timeAnder"});
 
     for (String date in eventDates) {
       print("date: " + date);

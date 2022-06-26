@@ -5,11 +5,11 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:shifts/main.dart';
+import 'package:shifts/repositories/eventTimeRepository.dart';
 import 'package:shifts/util/constants.dart';
 import 'package:shifts/util/shitfType.dart';
 import 'package:table_calendar/table_calendar.dart';
-
-
 
 int getHashCode(DateTime key) {
   return key.day * 1000000 + key.month * 10000 + key.year;
@@ -24,9 +24,9 @@ ShiftType getShiftType(int index) {
     case 2:
       return ShiftType.NACHT;
     case 3:
-      return ShiftType.VRIJ;
+      return ShiftType.ANDER;
     default:
-      return ShiftType.VRIJ;
+      return ShiftType.ANDER;
   }
 }
 
@@ -39,7 +39,7 @@ IconData getShiftIcon(ShiftType shift) {
     case ShiftType.NACHT:
       return Constants.nacht;
     default:
-      return Constants.vrij;
+      return Constants.ander;
   }
 }
 
@@ -51,6 +51,8 @@ String getShiftName(ShiftType shift) {
       return "Late";
     case ShiftType.NACHT:
       return "Nacht";
+    case ShiftType.ANDER:
+      return "Ander";
     default:
       return "Vrij";
   }
@@ -59,11 +61,13 @@ String getShiftName(ShiftType shift) {
 String getShiftTime(ShiftType shift) {
   switch (shift) {
     case ShiftType.VROEGE:
-      return Constants.tijd_vroege;
+      return getIt.get<EventTimeRepository>().getTimeVroege();
     case ShiftType.LATE:
-      return Constants.tijd_late;
+      return getIt.get<EventTimeRepository>().getTimeLate();
     case ShiftType.NACHT:
-      return Constants.tijd_nacht;
+      return getIt.get<EventTimeRepository>().getTimeNacht();
+    case ShiftType.ANDER:
+      return getIt.get<EventTimeRepository>().getTimeAnder();
     default:
       return "";
   }
@@ -77,10 +81,10 @@ ShiftType getShiftTypeFromString(String event) {
       return ShiftType.LATE;
     case "NACHT":
       return ShiftType.NACHT;
-    case "VRIJ":
-      return ShiftType.VRIJ;
+    case "ANDER":
+      return ShiftType.ANDER;
     default:
-      return ShiftType.VRIJ;
+      return ShiftType.ANDER;
   }
 }
 

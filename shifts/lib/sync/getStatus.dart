@@ -1,10 +1,11 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<bool> ishostDevice() async {
-  late SharedPreferences _prefs;
-  _prefs = await SharedPreferences.getInstance();
+  // late SharedPreferences _prefs;
+  // _prefs = await SharedPreferences.getInstance();
 
-  return _prefs.getBool("isHost") ?? true;
+  // return _prefs.getBool("isHost") ?? true;
+  return true;
 }
 
 Future<bool> setHostDevice() async {

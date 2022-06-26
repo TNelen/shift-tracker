@@ -8,6 +8,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shifts/models/event.dart';
 import 'package:shifts/repositories/eventRepository.dart';
+import 'package:shifts/repositories/eventTimeRepository.dart';
 import 'package:shifts/sync/queries/addEvent.dart';
 import 'package:shifts/sync/queries/removeEvent.dart';
 import 'package:shifts/util/constants.dart';
@@ -32,6 +33,7 @@ void main() async {
   );
 
   getIt.registerSingleton<EventRepository>(EventRepository(), signalsReady: true);
+  getIt.registerSingleton<EventTimeRepository>(EventTimeRepository(), signalsReady: true);
   runApp(MyApp());
 }
 
@@ -59,11 +61,13 @@ class _MyHomePageState extends State<MyHomePage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   EventRepository eventRepo = getIt.get<EventRepository>();
+  EventTimeRepository eventTimeRepo = getIt.get<EventTimeRepository>();
   late final ValueNotifier<List<Event>> _selectedEvents;
 
   RefreshController _refreshController = RefreshController(initialRefresh: false);
 
   late Future<bool> isEventRepoInitialized;
+  late Future<bool> isEventTimeRepoInitialized;
 
   List<Event> _getEventsForDay(DateTime day) {
     return eventRepo.loadEventForDay(day);
@@ -77,6 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
     initializeDateFormatting('nl_BE', null);
 
     isEventRepoInitialized = eventRepo.init();
+    isEventTimeRepoInitialized = eventTimeRepo.init();
   }
 
   @override
@@ -102,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_selectedEvents.value.isEmpty) {
       eventRepo.addEvent(_selectedDay ?? _focusedDay, type);
       _selectedEvents.value = _getEventsForDay(_focusedDay);
-      await addRemoteEvent(eventRepo.calendarCode, Event(type), _focusedDay);
+      //await addRemoteEvent(eventRepo.calendarCode, Event(type), _focusedDay);
       setState(() {});
     }
   }
@@ -150,22 +155,22 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(
-                Icons.settings_outlined,
-                color: Colors.black87,
-              ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return SettingsPopup();
-                  },
-                );
-              },
-            )
-          ],
+          // actions: <Widget>[
+          //   IconButton(
+          //     icon: Icon(
+          //       Icons.settings_outlined,
+          //       color: Colors.black87,
+          //     ),
+          //     onPressed: () {
+          //       showDialog(
+          //         context: context,
+          //         builder: (BuildContext context) {
+          //           return SettingsPopup();
+          //         },
+          //       );
+          //     },
+          //   )
+          // ],
         ),
         body: FutureBuilder<bool>(
             future: isEventRepoInitialized,
@@ -175,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     controller: _refreshController,
                     //only enable refresh if you are subscribed to ther calendar
                     enablePullDown: !eventRepo.isHostDevice,
-                    onRefresh: _onRefresh,
+                    //onRefresh: _onRefresh,
                     child: Column(children: [
                       TableCalendar(
                         locale: 'nl_BE',
@@ -238,7 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             );
                           },
                           markerBuilder: (context, day, events) {
-                            ShiftType shift = ShiftType.VRIJ;
+                            ShiftType shift = ShiftType.ANDER;
                             for (var e in events) {
                               String event = e.toString().toUpperCase();
                               if (event.contains("VROEGE")) {
@@ -248,16 +253,16 @@ class _MyHomePageState extends State<MyHomePage> {
                               } else if (event.contains("NACHT")) {
                                 shift = ShiftType.NACHT;
                               } else {
-                                shift = ShiftType.VRIJ;
+                                shift = ShiftType.ANDER;
                               }
                             }
-                            if (shift != ShiftType.VRIJ) {
+                            if (shift != ShiftType.ANDER) {
                               return Container(
                                 width: 40,
                                 height: 10,
                                 decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.0), color: getColorForShift(shift)),
                               );
-                            } else if (shift == ShiftType.VRIJ) {
+                            } else if (shift == ShiftType.ANDER) {
                               return SizedBox();
                             }
                           },

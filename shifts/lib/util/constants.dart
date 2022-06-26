@@ -14,9 +14,6 @@ class Constants {
   static const IconData vroege = WeatherIcons.horizon_alt;
   static const IconData latee = WeatherIcons.day_cloudy_high;
   static const IconData nacht = WeatherIcons.night_clear;
-  static const IconData vrij = WeatherIcons.day_sunny;
+  static const IconData ander = WeatherIcons.day_sunny;
 
-  static const String tijd_vroege = "6:30 - 14:36";
-  static const String tijd_late = "13:54 - 22:00";
-  static const String tijd_nacht = "21:30 - 7:00";
 }

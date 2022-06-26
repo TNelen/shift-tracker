@@ -1,1 +1,1 @@
-enum ShiftType { VROEGE, LATE, NACHT, VRIJ }
+enum ShiftType { VROEGE, LATE, NACHT, ANDER }
